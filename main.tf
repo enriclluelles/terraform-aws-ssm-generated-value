@@ -45,11 +45,15 @@ resource "aws_lambda_function" "generate_value" {
     # so that the delete permission is still there during destroy
     aws_iam_role_policy.generate_value,
   ]
+
+  tags = var.common_tags
 }
 
 resource "aws_secretsmanager_secret" "secret" {
   count = var.use_secrets_manager ? 1 : 0
-  name = var.parameter_name
+  name  = var.parameter_name
+
+  tags = var.common_tags
 }
 
 resource "aws_lambda_invocation" "generate_value" {
@@ -68,6 +72,8 @@ resource "aws_lambda_invocation" "generate_value" {
 resource "aws_cloudwatch_log_group" "generate_value" {
   name              = "/aws/lambda/${aws_lambda_function.generate_value.function_name}"
   retention_in_days = 14
+
+  tags = var.common_tags
 }
 
 data "aws_iam_policy_document" "logs" {
@@ -84,26 +90,26 @@ data "aws_iam_policy_document" "logs" {
 }
 
 data "aws_iam_policy_document" "ssm" {
-statement {
-  actions = [
-    "ssm:PutParameter",
-    "ssm:DeleteParameter",
-  ]
+  statement {
+    actions = [
+      "ssm:PutParameter",
+      "ssm:DeleteParameter",
+    ]
 
-  resources = [
-    local.parameterArn
-  ]
+    resources = [
+      local.parameterArn
+    ]
   }
 }
 
 data "aws_iam_policy_document" "secrets_manager" {
   statement {
-  actions = [
-    "secretsmanager:DeleteSecret",
-    "secretsmanager:PutSecretValue",
-  ]
+    actions = [
+      "secretsmanager:DeleteSecret",
+      "secretsmanager:PutSecretValue",
+    ]
 
-  resources = [
+    resources = [
       try(aws_secretsmanager_secret.secret[0].arn, null)
     ]
   }
@@ -136,5 +142,5 @@ resource "aws_iam_role" "generate_value_exec" {
   ]
 }
 EOF
+  tags               = var.common_tags
 }
-

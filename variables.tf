@@ -19,3 +19,9 @@ variable "use_secrets_manager" {
   default     = false
   description = "Will use secrets manager instead of SSM"
 }
+
+variable "common_tags" {
+  type        = map(string)
+  default     = {}
+  description = "Tags to set on the resources"
+}
